@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Absensi Digital Pro</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body { font-family: sans-serif; background:#f8fafc; }
+</style>
+</head>
+
+<body>
+
+<div id="app"></div>
+
+<script>
+/* ================= CONFIG ================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbxO18f4zuocy-d8DY7sZjIrEB4qPjx5hP6upxUwJ3ud4G7hUcM8_J5pn6HNI1bxmZwfW/exec";
+
+/* ================= DATABASE ================= */
+let DB = {
+    users: [],
+    siswa: [],
+    absensi: [],
+    pengaturan: {
+        nama_lembaga: "PESANTREN",
+        sesi_per_hari: 1,
+        sekolah_data: ""
+    },
+    session: null
+};
+
+/* ================= LOCAL ================= */
+function saveLocal(){
+    localStorage.setItem("abs_db", JSON.stringify(DB));
+}
+function loadLocal(){
+    const d = localStorage.getItem("abs_db");
+    if(d) DB = JSON.parse(d);
+}
+
+/* ================= API ================= */
+async function getData(type){
+    return await fetch(API_URL + "?type=" + type).then(r=>r.json());
+}
+
+async function postData(sheet, values){
+    await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            sheet: sheet,
+            values: values
+        })
+    });
+}
+
+/* ================= INIT ================= */
+async function init(){
+    loadLocal();
+
+    // load session
+    const sess = localStorage.getItem("session");
+    if(sess) DB.session = JSON.parse(sess);
+
+    try {
+        DB.siswa = await getData("siswa");
+        DB.absensi = await getData("absensi");
+        DB.users = await getData("users");
+    } catch(e){
+        console.log("Gagal ambil data:", e);
+    }
+
+    render();
+}
+
+/* ================= LOGIN ================= */
+async function login(){
+    const u = document.getElementById("username").value;
+    const p = document.getElementById("password").value;
+
+    const users = await getData("users");
+    const user = users.find(x => x.username === u && x.password === p);
+
+    if(user){
+        DB.session = user;
+        localStorage.setItem("session", JSON.stringify(user));
+        render();
+    } else {
+        alert("Login gagal");
+    }
+}
+
+function logout(){
+    DB.session = null;
+    localStorage.removeItem("session");
+    render();
+}
+
+/* ================= UI ================= */
+function render(){
+    if(!DB.session){
+        document.getElementById("app").innerHTML = `
+            <div style="padding:20px; max-width:300px; margin:auto">
+                <h3>Login</h3>
+                <input id="username" placeholder="Username" style="width:100%;margin-bottom:10px">
+                <input id="password" type="password" placeholder="Password" style="width:100%;margin-bottom:10px">
+                <button onclick="login()" style="width:100%">Masuk</button>
+            </div>
+        `;
+        return;
+    }
+
+    document.getElementById("app").innerHTML = `
+        <div style="padding:20px">
+            <h2>${DB.pengaturan.nama_lembaga}</h2>
+            <p>User: ${DB.session.username} (${DB.session.role})</p>
+            <button onclick="logout()">Logout</button>
+            <hr><br>
+
+            <button onclick="testAbsensi()">Tambah Absensi Dummy</button>
+
+            <pre>${JSON.stringify(DB, null, 2)}</pre>
+        </div>
+    `;
+}
+
+/* ================= TEST ABSENSI ================= */
+async function testAbsensi(){
+    const today = new Date().toISOString().split('T')[0];
+
+    const row = [
+        today,
+        "12345",
+        "Nama Dummy",
+        "SMA",
+        "10A",
+        "1",
+        "Hadir"
+    ];
+
+    // simpan lokal
+    DB.absensi.push({
+        tanggal: row[0],
+        nis: row[1],
+        nama: row[2],
+        sekolah: row[3],
+        kelas: row[4],
+        sesi: row[5],
+        status: row[6]
+    });
+
+    saveLocal();
+
+    // kirim ke sheets
+    await postData("absensi", [row]);
+
+    alert("Data terkirim ke Google Sheets");
+    render();
+}
+
+/* ================= START ================= */
+init();
+</script>
+
+</body>
+</html>
