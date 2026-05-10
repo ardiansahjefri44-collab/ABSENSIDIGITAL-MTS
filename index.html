@@ -9,362 +9,314 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #FFFBEB; }
         .islamic-pattern { background-image: radial-gradient(#0F766E 0.5px, transparent 0.5px); background-size: 20px 20px; opacity: 0.05; }
-        .btn-primary { @apply bg-[#0F766E] text-white px-4 py-2 rounded-lg hover:bg-[#0D635C] transition-all; }
         .card { @apply bg-white p-6 rounded-2xl shadow-sm border border-amber-100; }
-        .tab-active { @apply border-b-4 border-[#D97706] text-[#0F766E] font-bold; }
-        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 12px; color: white; z-index: 1000; transform: translateY(100px); transition: all 0.3s; }
+        .btn-primary { @apply bg-[#0F766E] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#0D635C] transition-all active:scale-95 disabled:opacity-50; }
+        .input-field { @apply w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#D97706] transition-all; }
+        .tab-btn { @apply flex-1 py-4 text-center font-semibold text-gray-500 border-b-2 border-transparent transition-all; }
+        .tab-btn.active { @apply text-[#0F766E] border-[#D97706] bg-amber-50/50; }
+        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 2rem; border-radius: 1rem; color: white; transform: translateY(200%); transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 9999; }
         .toast.show { transform: translateY(0); }
     </style>
 </head>
-<body class="min-h-screen">
-    <div class="islamic-pattern absolute inset-0 pointer-events-none"></div>
+<body class="min-h-screen pb-12">
+    <div class="islamic-pattern fixed inset-0 pointer-events-none"></div>
 
-    <header class="bg-[#0F766E] text-white p-4 shadow-lg sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto flex justify-between items-center">
+    <header class="bg-[#0F766E] text-white p-6 shadow-xl sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
             <div>
-                <p class="text-xs opacity-80 italic">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
-                <h1 id="madrasah-name" class="text-xl font-bold uppercase tracking-wide">Absensi Madrasah</h1>
+                <p class="text-[10px] opacity-70 italic tracking-widest">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
+                <h1 id="ui-madrasah-name" class="text-xl font-bold tracking-tight uppercase">Absensi Madrasah</h1>
             </div>
-            <div id="status-badge" class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-xs">
-                <span id="sync-icon" class="w-2 h-2 rounded-full bg-green-400"></span>
+            <div id="sync-status" class="flex items-center gap-2 bg-black/20 px-4 py-2 rounded-full text-xs">
+                <div id="sync-dot" class="w-2 h-2 rounded-full bg-green-400"></div>
                 <span id="sync-text">Tersinkron</span>
             </div>
         </div>
     </header>
 
-    <main id="auth-view" class="max-w-md mx-auto mt-20 px-4">
-        <div class="card">
-            <h2 class="text-2xl font-bold text-center text-[#0F766E] mb-6">Masuk Petugas</h2>
+    <main id="view-login" class="max-w-md mx-auto mt-20 px-4">
+        <div class="card space-y-6">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-gray-800">Masuk Petugas</h2>
+                <p class="text-sm text-gray-500">Silakan login untuk memulai absensi</p>
+            </div>
             <div class="space-y-4">
-                <input type="text" id="login-ssId" placeholder="Google Sheet ID" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-amber-500">
-                <input type="text" id="username" placeholder="Username" class="w-full p-3 border rounded-xl outline-none">
-                <input type="password" id="password" placeholder="Password" class="w-full p-3 border rounded-xl outline-none">
-                <button onclick="handleLogin()" class="w-full py-4 bg-[#D97706] text-white rounded-xl font-bold hover:scale-[1.02] transition-transform">Masuk</button>
-                <p class="text-center text-xs text-gray-400 mt-4">Hint: admin / admin123</p>
+                <input type="text" id="username" placeholder="Username" class="input-field">
+                <input type="password" id="password" placeholder="Password" class="input-field">
+                <button onclick="handleLogin()" id="btn-login" class="btn-primary w-full">Masuk</button>
             </div>
         </div>
     </main>
 
-    <main id="app-view" class="hidden max-w-5xl mx-auto p-4 pb-24">
-        <!-- Navigation Tabs -->
-        <nav class="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl overflow-hidden">
-            <button onclick="switchTab('input')" id="tab-input" class="flex-1 py-4 text-center tab-active">Input</button>
-            <button onclick="switchTab('rekap')" id="tab-rekap" class="flex-1 py-4 text-center">Rekap & AI</button>
-            <button onclick="switchTab('config')" id="tab-config" class="flex-1 py-4 text-center">Pengaturan</button>
+    <main id="view-app" class="hidden max-w-4xl mx-auto mt-6 px-4 space-y-6">
+        <nav class="flex bg-white rounded-2xl shadow-sm overflow-hidden border border-amber-100">
+            <button onclick="switchTab('input')" id="tab-input" class="tab-btn active">Input</button>
+            <button onclick="switchTab('rekap')" id="tab-rekap" class="tab-btn">Rekap</button>
+            <button onclick="switchTab('config')" id="tab-config" class="tab-btn">Pengaturan</button>
         </nav>
 
-        <!-- Tab: Input Absensi -->
-        <section id="view-input" class="space-y-6">
-            <div class="card grid md:grid-cols-3 gap-4">
+        <!-- Tab: Input -->
+        <section id="sec-input" class="space-y-6">
+            <div class="card grid md:grid-cols-2 gap-4">
                 <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase">Tanggal</label>
-                    <input type="date" id="input-date" class="w-full p-2 border rounded-lg">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Tanggal</label>
+                    <input type="date" id="ins-date" class="input-field mt-1">
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase">Sesi</label>
-                    <select id="input-session" class="w-full p-2 border rounded-lg">
-                        <option value="1">Jam 1 (Pagi)</option>
-                        <option value="2">Jam 2 (Siang)</option>
-                        <option value="3">Jam 3 (Malam)</option>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Sesi</label>
+                    <select id="ins-session" class="input-field mt-1">
+                        <option value="1">Jam ke-1 (Pagi)</option>
+                        <option value="2">Jam ke-2 (Siang)</option>
+                        <option value="3">Jam ke-3 (Malam)</option>
                     </select>
-                </div>
-                <div class="flex items-end">
-                    <button onclick="lockSessionToday()" class="w-full bg-red-500 text-white p-2 rounded-lg text-sm font-semibold">🔒 Kunci Sesi Ini</button>
                 </div>
             </div>
 
-            <div class="card bg-[#0F766E]/5">
+            <div class="card border-2 border-[#0F766E]/20 bg-[#0F766E]/5">
                 <div class="flex gap-2">
-                    <input type="text" id="scanner-input" placeholder="Scan QR atau Ketik NIS (Enter)" 
-                           class="flex-1 p-4 border-2 border-[#0F766E] rounded-xl focus:ring-0 text-xl font-mono text-center">
-                    <select id="input-status" class="bg-white px-4 border rounded-xl font-bold">
+                    <input type="text" id="scan-input" placeholder="Scan QR / Ketik NIS..." 
+                           class="flex-1 p-4 text-2xl font-mono text-center bg-white border-2 border-[#0F766E] rounded-2xl outline-none focus:ring-4 focus:ring-[#0F766E]/10">
+                    <select id="ins-status" class="bg-white px-4 border rounded-2xl font-bold text-[#0F766E]">
                         <option value="Hadir">HADIR</option>
                         <option value="Sakit">SAKIT</option>
                         <option value="Izin">IZIN</option>
                         <option value="Alpha">ALPHA</option>
                     </select>
                 </div>
-                <p class="text-center text-xs text-gray-500 mt-2">Mode: Enter Otomatis Aktif</p>
+                <p class="text-center text-[10px] text-gray-400 mt-3 font-semibold">ENTER OTOMATIS AKTIF</p>
             </div>
 
-            <div class="card overflow-x-auto">
-                <table class="w-full text-left">
+            <div class="card overflow-hidden">
+                <table class="w-full text-left text-sm">
                     <thead>
-                        <tr class="text-xs text-gray-400 border-b">
-                            <th class="pb-2">WAKTU</th>
-                            <th class="pb-2">SISWA</th>
-                            <th class="pb-2 text-center">STATUS</th>
-                            <th class="pb-2 text-right">SYNC</th>
+                        <tr class="text-gray-400 border-b">
+                            <th class="pb-3">WAKTU</th>
+                            <th class="pb-3">NIS</th>
+                            <th class="pb-3 text-center">STATUS</th>
+                            <th class="pb-3 text-right">STATUS</th>
                         </tr>
                     </thead>
-                    <tbody id="recent-list" class="divide-y text-sm">
-                        <!-- List dinamis -->
+                    <tbody id="list-recent" class="divide-y">
+                        <!-- Data dinamis -->
                     </tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Tab: Rekap & AI -->
-        <section id="view-rekap" class="hidden space-y-6">
-            <div class="grid md:grid-cols-2 gap-4">
-                <div class="card bg-amber-50">
-                    <h3 class="font-bold text-amber-800 mb-2">Peringatan Alpha Tinggi</h3>
-                    <div id="warning-list" class="space-y-2 text-sm">
-                        <!-- Logika JS -->
-                    </div>
-                </div>
-                <div class="card flex flex-col items-center justify-center text-center">
-                    <button onclick="generateAI()" class="bg-[#0F766E] text-white p-4 rounded-full shadow-lg mb-4 hover:rotate-12 transition-all">🤖</button>
-                    <h3 class="font-bold">Analisis AI Pesantren</h3>
-                    <p class="text-xs text-gray-500">Klik untuk mendapatkan ringkasan perilaku santri</p>
-                </div>
-            </div>
-            <div id="ai-result" class="card hidden prose prose-sm max-w-none bg-white">
-                <!-- Hasil AI -->
-            </div>
+        <!-- Tab: Rekap -->
+        <section id="sec-rekap" class="hidden card">
+            <h3 class="font-bold text-lg mb-4">Ringkasan Kehadiran</h3>
+            <p class="text-sm text-gray-500 italic">Fitur rekapitulasi sedang dimuat dari Google Sheets...</p>
         </section>
 
         <!-- Tab: Pengaturan -->
-        <section id="view-config" class="hidden space-y-4">
-            <div class="card">
-                <h3 class="font-bold mb-4">Database & Setup</h3>
-                <button onclick="runSetup()" class="w-full p-3 border-2 border-[#0F766E] text-[#0F766E] rounded-xl font-bold hover:bg-[#0F766E] hover:text-white transition-all">⚙️ Jalankan Initial Setup Sheets</button>
-            </div>
+        <section id="sec-config" class="hidden space-y-6">
             <div class="card space-y-4">
+                <h3 class="font-bold text-[#0F766E]">Koneksi Database</h3>
                 <div>
-                    <label class="text-xs font-bold">API Key Gemini (AI)</label>
-                    <input type="password" id="cfg-ai-key" class="w-full p-2 border rounded">
+                    <label class="text-[10px] font-bold text-gray-400">GOOGLE SHEETS ID</label>
+                    <input type="text" id="cfg-ssid" placeholder="Masukkan ID dari URL Sheets" class="input-field mt-1">
                 </div>
-                <div>
-                    <label class="text-xs font-bold">Batas Alpha (Reguler)</label>
-                    <input type="number" id="cfg-threshold" class="w-full p-2 border rounded">
+                <div class="flex gap-2">
+                    <button onclick="saveSheetId()" class="btn-primary flex-1">Simpan ID</button>
+                    <button onclick="runSetup()" class="btn-primary bg-amber-600 hover:bg-amber-700">⚙️ Setup Database</button>
                 </div>
-                <button onclick="saveSettings()" class="btn-primary w-full">Simpan Perubahan</button>
             </div>
         </section>
     </main>
 
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast shadow-2xl"></div>
 
     <script>
         const state = {
             user: null,
-            ssId: localStorage.getItem('ssId') || '',
-            gasUrl: 'https://script.google.com/macros/s/AKfycbwOIowzp-NfJr3g5w7HOsdJ7OPfkNZzCd--PQZ_iuBPyId2ZAMuPZMQ32ohqK9V5sVYqA/exec', // GANTI DENGAN URL DEPLOY GAS ANDA
+            ssId: localStorage.getItem('madrasah_ssid') || '',
+            gasUrl: 'https://script.google.com/macros/s/AKfycbwOIowzp-NfJr3g5w7HOsdJ7OPfkNZzCd--PQZ_iuBPyId2ZAMuPZMQ32ohqK9V5sVYqA/exec',
             queue: JSON.parse(localStorage.getItem('absensi_pending') || '[]'),
-            settings: {},
-            students: []
+            isOnline: navigator.onLine
         };
 
-        // --- CORE FUNCTIONS ---
-
         window.onload = () => {
-            if (state.ssId) document.getElementById('login-ssId').value = state.ssId;
-            document.getElementById('input-date').valueAsDate = new Date();
+            document.getElementById('ins-date').valueAsDate = new Date();
+            document.getElementById('cfg-ssid').value = state.ssId;
             
-            // Listeners
-            document.getElementById('scanner-input').addEventListener('keypress', e => {
-                if (e.key === 'Enter') processAttendance();
+            document.getElementById('scan-input').addEventListener('keypress', e => {
+                if (e.key === 'Enter') processEntry();
             });
 
-            window.addEventListener('online', syncOfflineData);
-            updateSyncBadge();
-            renderRecentList();
+            window.addEventListener('online', () => updateOnlineStatus(true));
+            window.addEventListener('offline', () => updateOnlineStatus(false));
+            
+            renderRecent();
+            updateOnlineStatus(navigator.onLine);
         };
 
         async function api(action, data = {}) {
             const body = JSON.stringify({ action, data: { ...data, ssId: state.ssId } });
             try {
-                const res = await fetch(state.gasUrl, {
+                const response = await fetch(state.gasUrl, {
                     method: 'POST',
-                    mode: 'no-cors', // Penting untuk GAS
-                    headers: { 'Content-Type': 'text/plain' },
+                    mode: 'no-cors', // Penting untuk Apps Script
                     body: body
                 });
-                // Karena mode 'no-cors', kita tidak bisa baca response body secara langsung.
-                // Untuk production sesungguhnya, gunakan Proxy atau Deploy "Anyone" dengan benar.
-                return { success: true }; 
-            } catch (err) {
-                return { success: false, message: err.toString() };
+                return { success: true }; // no-cors tidak bisa baca body, kita asumsikan sukses jika fetch jalan
+            } catch (e) {
+                return { success: false, message: e.toString() };
             }
         }
 
-        function processAttendance() {
-            const nis = document.getElementById('scanner-input').value;
-            const tanggal = document.getElementById('input-date').value;
-            const sesi = document.getElementById('input-session').value;
-            const status = document.getElementById('input-status').value;
+        async function handleLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login');
 
+            if(!u || !p) return showToast("Isi username & password!", "#ef4444");
+
+            btn.disabled = true;
+            btn.innerText = "Mengecek...";
+
+            try {
+                const res = await fetch(state.gasUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'login', data: { username: u, password: p, ssId: state.ssId } })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    state.user = result.user;
+                    document.getElementById('view-login').classList.add('hidden');
+                    document.getElementById('view-app').classList.remove('hidden');
+                    showToast("Ahlan wa Sahlan!", "#0F766E");
+                    if (!state.ssId) {
+                        switchTab('config');
+                        showToast("Harap atur Sheet ID terlebih dahulu", "#D97706");
+                    }
+                } else {
+                    showToast(result.message, "#ef4444");
+                }
+            } catch (e) {
+                showToast("Gagal terhubung ke server", "#ef4444");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Masuk";
+            }
+        }
+
+        function processEntry() {
+            const nis = document.getElementById('scan-input').value.trim();
             if (!nis) return;
 
             const entry = {
                 id: Date.now(),
-                nis,
-                tanggal,
-                sesi,
-                status,
-                metode: 'Scan',
-                petugas: state.user?.username || 'Guest',
+                nis: nis,
+                tanggal: document.getElementById('ins-date').value,
+                sesi: document.getElementById('ins-session').value,
+                status: document.getElementById('ins-status').value,
+                petugas: state.user.username,
                 timestamp: new Date().toISOString(),
                 syncStatus: 'pending'
             };
 
-            // Simpan ke local
             state.queue.unshift(entry);
             localStorage.setItem('absensi_pending', JSON.stringify(state.queue));
             
-            // Clear input
-            document.getElementById('scanner-input').value = '';
-            document.getElementById('scanner-input').focus();
+            document.getElementById('scan-input').value = '';
+            document.getElementById('scan-input').focus();
             
-            renderRecentList();
-            showToast('✅ Berhasil dicatat (Offline)', '#0F766E');
-
-            // Coba kirim jika online
-            if (navigator.onLine) {
-                sendToGas(entry);
-            } else {
-                updateSyncBadge();
-            }
-        }
-
-        async function sendToGas(entry) {
-            const res = await fetch(state.gasUrl, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'submit_attendance', data: { ...entry, ssId: state.ssId } })
-            });
-            const result = await res.json();
+            renderRecent();
+            showToast("Data disimpan secara lokal", "#0F766E");
             
-            if (result.success) {
-                markAsSynced(entry.id);
-            } else {
-                showToast('❌ ' + result.message, '#ef4444');
-            }
+            if (state.isOnline) syncData();
         }
 
-        function markAsSynced(id) {
-            state.queue = state.queue.map(item => item.id === id ? { ...item, syncStatus: 'synced' } : item);
-            localStorage.setItem('absensi_pending', JSON.stringify(state.queue));
-            renderRecentList();
-            updateSyncBadge();
-        }
-
-        async function syncOfflineData() {
+        async function syncData() {
             const pending = state.queue.filter(i => i.syncStatus === 'pending');
-            if (pending.length === 0) return;
+            if (pending.length === 0 || !state.isOnline) return;
 
-            showToast(`🔄 Sinkronisasi ${pending.length} data...`, '#D97706');
-            
-            const res = await fetch(state.gasUrl, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'sync_pending', data: { ssId: state.ssId, queue: pending } })
-            });
-            const result = await res.json();
-
-            if (result.success) {
+            const res = await api('sync_pending', { queue: pending });
+            if (res.success) {
                 state.queue = state.queue.map(i => ({ ...i, syncStatus: 'synced' }));
                 localStorage.setItem('absensi_pending', JSON.stringify(state.queue));
-                renderRecentList();
-                updateSyncBadge();
-                showToast(`✅ ${result.count} Data berhasil sinkron`, '#0F766E');
+                renderRecent();
+                updateOnlineStatus(true);
             }
         }
 
-        // --- UI HELPERS ---
-
-        function renderRecentList() {
-            const container = document.getElementById('recent-list');
+        function renderRecent() {
+            const container = document.getElementById('list-recent');
             container.innerHTML = state.queue.slice(0, 10).map(item => `
                 <tr class="hover:bg-gray-50">
-                    <td class="py-3 text-xs text-gray-400">${new Date(item.timestamp).toLocaleTimeString()}</td>
-                    <td class="py-3 font-semibold">${item.nis}</td>
-                    <td class="py-3 text-center">
-                        <span class="px-2 py-1 rounded-full text-[10px] ${getStatusColor(item.status)}">${item.status}</span>
+                    <td class="py-4 text-[10px] text-gray-400 font-mono">${new Date(item.timestamp).toLocaleTimeString()}</td>
+                    <td class="py-4 font-bold text-gray-700">${item.nis}</td>
+                    <td class="py-4 text-center">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold ${getStatusStyle(item.status)}">${item.status}</span>
                     </td>
-                    <td class="py-3 text-right">
-                        ${item.syncStatus === 'synced' ? '✅' : '⏳'}
-                    </td>
+                    <td class="py-4 text-right">${item.syncStatus === 'synced' ? '✅' : '⏳'}</td>
                 </tr>
             `).join('');
         }
 
-        function getStatusColor(s) {
+        function getStatusStyle(s) {
             if (s === 'Hadir') return 'bg-green-100 text-green-700';
             if (s === 'Alpha') return 'bg-red-100 text-red-700';
             return 'bg-amber-100 text-amber-700';
         }
 
-        function showToast(msg, color) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.style.backgroundColor = color;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
-
-        function updateSyncBadge() {
-            const pendingCount = state.queue.filter(i => i.syncStatus === 'pending').length;
-            const icon = document.getElementById('sync-icon');
-            const text = document.getElementById('sync-text');
-            
-            if (!navigator.onLine) {
-                icon.className = 'w-2 h-2 rounded-full bg-red-500';
-                text.textContent = 'Offline';
-            } else if (pendingCount > 0) {
-                icon.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
-                text.textContent = `${pendingCount} Pending`;
-            } else {
-                icon.className = 'w-2 h-2 rounded-full bg-green-400';
-                text.textContent = 'Tersinkron';
-            }
-        }
-
-        async function handleLogin() {
-            const ssId = document.getElementById('login-ssId').value;
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-
-            if (!ssId) return showToast('Masukkan Sheet ID!', '#ef4444');
-            state.ssId = ssId;
-            localStorage.setItem('ssId', ssId);
-
-            // Simulasi/Fetch login
-            showToast('Menghubungkan...', '#0F766E');
-            const res = await fetch(state.gasUrl, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'login', data: { ssId, username: user, password: pass } })
-            });
-            const result = await res.json();
-
-            if (result.success) {
-                state.user = result.user;
-                document.getElementById('auth-view').classList.add('hidden');
-                document.getElementById('app-view').classList.remove('hidden');
-                showToast(`Ahlan wa Sahlan, ${user}!`, '#0F766E');
-                loadInitialData();
-            } else {
-                showToast(result.message, '#ef4444');
-            }
+        function saveSheetId() {
+            const val = document.getElementById('cfg-ssid').value.trim();
+            if (!val) return showToast("Masukkan ID!", "#ef4444");
+            state.ssId = val;
+            localStorage.setItem('madrasah_ssid', val);
+            showToast("ID Tersimpan!", "#0F766E");
         }
 
         async function runSetup() {
-            if (!confirm('Jalankan setup database? Ini akan membuat tab baru di Google Sheets Anda.')) return;
-            showToast('Memproses setup...', '#D97706');
+            if (!state.ssId) return showToast("Simpan ID dulu!", "#ef4444");
+            if (!confirm("Jalankan setup database?")) return;
+
+            showToast("Menjalankan setup...", "#D97706");
             const res = await fetch(state.gasUrl, {
                 method: 'POST',
                 body: JSON.stringify({ action: 'setup_db', data: { ssId: state.ssId } })
             });
             const result = await res.json();
-            showToast(result.message, result.success ? '#0F766E' : '#ef4444');
+            showToast(result.message, result.success ? "#0F766E" : "#ef4444");
         }
 
-        function switchTab(tab) {
-            ['input', 'rekap', 'config'].forEach(t => {
-                document.getElementById(`view-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).classList.remove('tab-active');
+        function switchTab(t) {
+            ['input', 'rekap', 'config'].forEach(key => {
+                document.getElementById(`sec-${key}`).classList.add('hidden');
+                document.getElementById(`tab-${key}`).classList.remove('active');
             });
-            document.getElementById(`view-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+            document.getElementById(`sec-${t}`).classList.remove('hidden');
+            document.getElementById(`tab-${t}`).classList.add('active');
+        }
+
+        function updateOnlineStatus(online) {
+            state.isOnline = online;
+            const dot = document.getElementById('sync-dot');
+            const txt = document.getElementById('sync-text');
+            const pendingCount = state.queue.filter(i => i.syncStatus === 'pending').length;
+
+            if (!online) {
+                dot.className = 'w-2 h-2 rounded-full bg-red-500';
+                txt.innerText = 'Offline';
+            } else if (pendingCount > 0) {
+                dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+                txt.innerText = `${pendingCount} Pending`;
+                syncData();
+            } else {
+                dot.className = 'w-2 h-2 rounded-full bg-green-400';
+                txt.innerText = 'Tersinkron';
+            }
+        }
+
+        function showToast(m, c) {
+            const t = document.getElementById('toast');
+            t.innerText = m;
+            t.style.backgroundColor = c;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
     </script>
 </body>
