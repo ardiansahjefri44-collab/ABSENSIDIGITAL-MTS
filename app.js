@@ -1,9 +1,6 @@
-// 🔑 GANTI DENGAN URL WEB APP ANDA DARI BAGIAN 1
-const GAS_URL = "https://script.google.com/macros/s/CONTOH/exec";
-
+const GAS_URL = "https://script.google.com/macros/s/URL_WEB_APP_ANDA/exec"; // GANTI INI!
 let currentUser = null;
 
-// 🔄 PINDAH TAB
 function showTab(name) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
@@ -12,27 +9,31 @@ function showTab(name) {
   if(name === 'rekap') loadRekap();
 }
 
-// 🔐 LOGIN
-async function handleLogin() {
+// 🔐 LOGIN (Enter otomatis OK karena pakai <form>)
+async function handleLogin(e) {
+  e.preventDefault();
   const u = document.getElementById('username').value.trim();
   const p = document.getElementById('password').value.trim();
-  if(!u || !p) return alert("Isi username & password!");
+  const msg = document.getElementById('login-msg');
+  msg.textContent = "";
 
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    body: JSON.stringify({ action: "login", username: u, password: p }),
-    headers: { "Content-Type": "text/plain" }
-  });
-  const data = await res.json();
-  if(data.success) {
-    currentUser = data;
-    document.getElementById('login-page').classList.remove('active');
-    document.getElementById('dashboard-page').classList.add('active');
-    document.getElementById('user-role').textContent = data.role;
-    loadSettings();
-  } else {
-    alert(data.error);
-  }
+  try {
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "login", username: u, password: p }),
+      headers: { "Content-Type": "text/plain" }
+    });
+    const data = await res.json();
+    if(data.success) {
+      currentUser = data;
+      document.getElementById('login-page').classList.remove('active');
+      document.getElementById('dashboard-page').classList.add('active');
+      document.getElementById('user-role').textContent = data.role;
+      loadSettings();
+    } else {
+      msg.textContent = "❌ " + data.error;
+    }
+  } catch(err) { msg.textContent = "❌ Gagal terhubung. Cek URL GAS."; }
 }
 
 function logout() {
@@ -41,12 +42,9 @@ function logout() {
   document.getElementById('login-page').classList.add('active');
 }
 
-// 📝 ABSENSI
-document.getElementById('scan-input').addEventListener('keypress', e => {
-  if(e.key === 'Enter') simpanAbsen();
-});
-
-async function simpanAbsen() {
+// 📝 ABSENSI (Enter otomatis OK)
+async function simpanAbsen(e) {
+  e.preventDefault();
   const nis = document.getElementById('scan-input').value.trim();
   const tgl = document.getElementById('tgl-absen').value;
   const sesi = document.querySelectorAll('.sesi-cb:checked');
@@ -55,15 +53,17 @@ async function simpanAbsen() {
   if(!nis || !tgl || sesi.length === 0) return alert("Lengkapi data!");
 
   for(let s of sesi) {
-    const res = await fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "absen", nis, tanggal: tgl, sesi: s.value, status, metode: "Manual/Scan", petugas: currentUser.username }),
-      headers: { "Content-Type": "text/plain" }
-    });
-    const data = await res.json();
-    if(!data.success) return alert(data.error);
+    try {
+      const res = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "absen", nis, tanggal: tgl, sesi: s.value, status, metode: "Manual/Scan", petugas: currentUser.username }),
+        headers: { "Content-Type": "text/plain" }
+      });
+      const data = await res.json();
+      if(!data.success) return alert(data.error);
+    } catch(err) { return alert("Gagal terhubung ke server."); }
   }
-  alert("✅ Absen berhasil disimpan!");
+  alert("✅ Absen berhasil!");
   document.getElementById('scan-input').value = "";
   document.getElementById('scan-input').focus();
 }
@@ -81,19 +81,23 @@ async function kunciSesi() {
 async function setupDB() {
   const id = document.getElementById('set-sheet-id').value.trim();
   if(!id) return alert("Masukkan ID Sheet!");
-  const res = await fetch(GAS_URL, { method:"POST", body:JSON.stringify({ action:"setup", sheetsId:id }), headers:{"Content-Type":"text/plain"} });
-  const data = await res.json();
-  alert(data.message || data.error);
+  try {
+    const res = await fetch(GAS_URL, { method:"POST", body:JSON.stringify({ action:"setup", sheetsId:id }), headers:{"Content-Type":"text/plain"} });
+    const data = await res.json();
+    alert(data.message || data.error);
+  } catch(err) { alert("Gagal setup. Cek koneksi atau URL GAS."); }
 }
 
 async function loadSettings() {
-  const res = await fetch(GAS_URL, { method:"POST", body:JSON.stringify({ action:"get_settings" }), headers:{"Content-Type":"text/plain"} });
-  const data = (await res.json()).data || {};
-  document.getElementById('set-nama').value = data.nama_madrasah || "";
-  document.getElementById('set-thr-reg').value = data.threshold_reguler || 25;
-  document.getElementById('set-thr-khad').value = data.threshold_khadim || 100;
-  document.getElementById('set-ai-key').value = data.ai_api_key || "";
-  document.getElementById('school-name').textContent = data.nama_madrasah || "MA Darul Hikmah";
+  try {
+    const res = await fetch(GAS_URL, { method:"POST", body:JSON.stringify({ action:"get_settings" }), headers:{"Content-Type":"text/plain"} });
+    const data = (await res.json()).data || {};
+    document.getElementById('set-nama').value = data.nama_madrasah || "";
+    document.getElementById('set-thr-reg').value = data.threshold_reguler || 25;
+    document.getElementById('set-thr-khad').value = data.threshold_khadim || 100;
+    document.getElementById('set-ai-key').value = data.ai_api_key || "";
+    document.getElementById('school-name').textContent = data.nama_madrasah || "MA Darul Hikmah";
+  } catch(err) {}
 }
 
 async function simpanSettings() {
@@ -109,29 +113,30 @@ async function simpanSettings() {
   loadSettings();
 }
 
-// 📊 REKAP & AI (SIMULASI AWAL)
+// 📊 REKAP & AI
 async function loadRekap() {
-  document.getElementById('ai-loading').textContent = "Memuat data absensi...";
+  document.getElementById('ai-loading').textContent = "Memuat data...";
   document.getElementById('rekap-body').innerHTML = "";
+  document.getElementById('ai-result').innerHTML = "";
   
-  const res = await fetch(GAS_URL, { method:"POST", body:JSON.stringify({ action:"get_rekap" }), headers:{"Content-Type":"text/plain"} });
-  const data = await res.json();
-  
-  if(data.success && data.data.length > 0) {
-    document.getElementById('rekap-body').innerHTML = data.data.map(r => 
-      `<tr><td>${r.nis}</td><td>${r.tanggal}</td><td>${r.sesi}</td><td>${r.status}</td></tr>`
-    ).join('');
+  try {
+    const res = await fetch(GAS_URL, { method:"POST", body:JSON.stringify({ action:"get_rekap" }), headers:{"Content-Type":"text/plain"} });
+    const data = await res.json();
     
-    // 🤖 AI ANALISIS (SIMULASI)
-    const alphaCount = data.data.filter(r => r.status === "Alpha").length;
-    let saran = "✅ Kehadiran stabil.";
-    if(alphaCount > 5) saran = "⚠️ Terdeteksi peningkatan alpha. Saran: Wali kelas melakukan kunjungan rumah ke siswa dengan alpha ≥ 3 kali.";
-    document.getElementById('ai-result').innerHTML = `<div class="card" style="background:#f0fdf4; border-left:4px solid var(--gold);"><strong>🤖 Saran AI:</strong><br>${saran}</div>`;
-    document.getElementById('ai-loading').textContent = "";
-  } else {
-    document.getElementById('ai-loading').textContent = "Belum ada data absensi.";
-  }
+    if(data.success && data.data.length > 0) {
+      document.getElementById('rekap-body').innerHTML = data.data.map(r => 
+        `<tr><td>${r.nis}</td><td>${r.tanggal.split('T')[0]}</td><td>${r.sesi}</td><td>${r.status}</td></tr>`
+      ).join('');
+      
+      const alphaCount = data.data.filter(r => r.status === "Alpha").length;
+      let saran = "✅ Kehadiran stabil.";
+      if(alphaCount > 5) saran = "⚠️ Terdeteksi peningkatan alpha. Saran: Wali kelas melakukan pendampingan ke siswa dengan alpha ≥ 3 kali.";
+      document.getElementById('ai-result').innerHTML = `<div class="card" style="background:#f0fdf4; border-left:4px solid var(--gold);"><strong>🤖 Saran AI:</strong><br>${saran}</div>`;
+    } else {
+      document.getElementById('ai-result').innerHTML = "<p>Belum ada data.</p>";
+    }
+  } catch(err) { document.getElementById('ai-loading').textContent = "Gagal memuat."; }
+  document.getElementById('ai-loading').textContent = "";
 }
 
-// SET TANGGAL HARI INI
 document.getElementById('tgl-absen').valueAsDate = new Date();
