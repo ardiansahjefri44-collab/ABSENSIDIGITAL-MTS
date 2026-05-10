@@ -12,9 +12,12 @@
     <section id="login-page" class="page active">
       <div class="card">
         <h2>🕌 Login Petugas</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="handleLogin()">Masuk</button>
+        <form id="login-form" onsubmit="handleLogin(event); return false;">
+          <input type="text" id="username" placeholder="Username" required autocomplete="off">
+          <input type="password" id="password" placeholder="Password" required>
+          <button type="submit">Masuk (Enter)</button>
+        </form>
+        <p id="login-msg" style="color:#dc2626; font-size:12px; margin-top:10px;"></p>
       </div>
     </section>
 
@@ -33,7 +36,6 @@
         <button onclick="showTab('settings')">⚙️ Pengaturan</button>
       </div>
 
-      <!-- TAB ABSENSI -->
       <div id="tab-absen" class="tab-content active">
         <div class="card">
           <label>Tanggal: <input type="date" id="tgl-absen"></label>
@@ -42,21 +44,22 @@
             <input type="checkbox" class="sesi-cb" value="2"> Jam 2
             <input type="checkbox" class="sesi-cb" value="3"> Jam 3
           </label>
-          <div class="input-group">
-            <input type="text" id="scan-input" placeholder="Scan QR / RFID / Ketik NIS" autofocus>
-            <select id="status-absen">
-              <option value="Hadir">Hadir</option>
-              <option value="Sakit">Sakit</option>
-              <option value="Izin">Izin</option>
-              <option value="Alpha">Alpha</option>
-            </select>
-          </div>
-          <button onclick="simpanAbsen()">💾 Simpan Absen</button>
-          <button class="btn-danger" onclick="kunciSesi()">🔒 Kunci Sesi Hari Ini</button>
+          <form id="absen-form" onsubmit="simpanAbsen(event); return false;">
+            <div class="input-group">
+              <input type="text" id="scan-input" placeholder="Scan QR / RFID / Ketik NIS" autofocus required autocomplete="off">
+              <select id="status-absen">
+                <option value="Hadir">Hadir</option>
+                <option value="Sakit">Sakit</option>
+                <option value="Izin">Izin</option>
+                <option value="Alpha">Alpha</option>
+              </select>
+            </div>
+            <button type="submit">💾 Simpan (Enter)</button>
+          </form>
+          <button class="btn-danger" style="margin-top:10px;" onclick="kunciSesi()">🔒 Kunci Sesi Hari Ini</button>
         </div>
       </div>
 
-      <!-- TAB REKAP & AI -->
       <div id="tab-rekap" class="tab-content">
         <div class="card">
           <h4>📈 Rekap & Analisis AI</h4>
@@ -69,7 +72,6 @@
         </div>
       </div>
 
-      <!-- TAB PENGATURAN -->
       <div id="tab-settings" class="tab-content">
         <div class="card">
           <h4>⚙️ Pengaturan Sistem</h4>
