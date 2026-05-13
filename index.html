@@ -216,7 +216,7 @@
 
 <script>
 const CONFIG = {
-  GAS_URL: "YOUR_GAS_WEB_APP_URL"
+  GAS_URL: "https://script.google.com/macros/s/AKfycby2rIjSXra3K0lmP7s8zZmVvnhpzasWgZDxc4J_TOaq4Deydml3bOSz_LXmzqfFRasw/exec"
 };
 
 const state = {
@@ -886,7 +886,7 @@ function bindPageEvents(){
 }
 
 async function start(){
-  if(!CONFIG.GAS_URL || CONFIG.GAS_URL === "https://script.google.com/macros/s/AKfycbxYFLfh0TXg6kuQYxFwDPaa5ZcC-MH7POur_DhxrNC15_dxh0_5uYZHRE6PpwH5nuce/exec"){
+  if(!CONFIG.GAS_URL || CONFIG.GAS_URL === "YOUR_GAS_WEB_APP_URL"){
     renderLogin("Ganti CONFIG.GAS_URL dulu dengan URL Web App GAS Anda.", "error");
     return;
   }
